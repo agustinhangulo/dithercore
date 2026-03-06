@@ -100,6 +100,7 @@ fn update_pixel(pixel: &mut Rgba<u8>, color: &Color) {
     pixel[0] = color.r;
     pixel[1] = color.g;
     pixel[2] = color.b;
+    pixel[3] = if pixel[3] > 0 { 255 } else { 0 }
 }
 
 fn error_diffusion_dither(
