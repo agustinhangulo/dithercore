@@ -78,6 +78,7 @@ struct QuantError {
     pub b: f32,
 }
 
+// A single element in an error diffusion kernel
 struct KernelElement {
     dx: i32,
     dy: i32,
@@ -89,6 +90,16 @@ fn distribute_error(pixel: &mut Rgba<u8>, err: &QuantError, coeff: f32) {
     pixel[0] = (pixel[0] as f32 + err.r * coeff).round().clamp(0.0, 255.0) as u8;
     pixel[1] = (pixel[1] as f32 + err.g * coeff).round().clamp(0.0, 255.0) as u8;
     pixel[2] = (pixel[2] as f32 + err.b * coeff).round().clamp(0.0, 255.0) as u8;
+}
+
+// Decided to make this a dedicated function should I make the decision to make alpha binary
+#[inline]
+fn update_pixel(pixel: &mut Rgba<u8>, color: &Color) {
+    // *Note: Only update RGB values, alpha channel is preserved as-is
+    // May change in the future so that any alpha > 0 is changed  to 255 to prevent colors outside target palette
+    pixel[0] = color.r;
+    pixel[1] = color.g;
+    pixel[2] = color.b;
 }
 
 fn error_diffusion_dither(
@@ -126,12 +137,7 @@ fn error_diffusion_dither(
                 b: curr_pixel[2] as f32 - new_color.b as f32,
             };
 
-            // Update new pixel
-            // *Note: Only update RGB values, alpha channel is preserved as-is
-            // May change in the future so that any alpha > 0 is changed  to 255 to prevent colors outside target palette
-            curr_pixel[0] = new_color.r;
-            curr_pixel[1] = new_color.g;
-            curr_pixel[2] = new_color.b;
+            update_pixel(curr_pixel, new_color);
 
             for ke in kernel {
                 // Bounds checking: Ensure the pixels we are checking actually exist
@@ -184,7 +190,7 @@ fn bayer_dither(
                 Where:
                     c = Current channel value (e.g. pixel[0]), c' = New channel value
                     threshold = Corresponding matrix entry for the pixel
-                    r = 255 / cube_root(num_colors); (borrowed this from Dithermark under js/shared/dither-utils.js)
+                    r = 255 / cube_root(num_colors); (borrowed this from [Dithermark](https://github.com/allen-garvey/dithermark/blob/master/js/shared/dither-util.js))
 
                 r is color spread; e.g. the distance between colors in your palette. This algorithm assumes colors are evenly spaced,
                 producing inaccurate colors for arbitrary palettes.
@@ -201,12 +207,7 @@ fn bayer_dither(
                 &palette,
             );
 
-            // Update new pixel
-            // *Note: Only update RGB values, alpha channel is preserved as-is
-            // May change in the future so that any alpha > 0 is changed  to 255 to prevent colors outside target palette
-            curr_pixel[0] = new_color.r;
-            curr_pixel[1] = new_color.g;
-            curr_pixel[2] = new_color.b;
+            update_pixel(curr_pixel, new_color);
         }
     }
 }
@@ -222,7 +223,6 @@ fn random_dither(
     let mut rng = rng();
 
     let noise_level = (255.0 / f32::powf(palette.len() as f32, 1.0 / 3.0)).clamp(0.0, 255.0) as i32;
-    println!("{noise_level}");
 
     for cy in 0..height {
         for cx in 0..width {
@@ -234,7 +234,7 @@ fn random_dither(
                     c' = c + color_spread * threshold
 
                 Where:
-                    threshold = rand([-0.5, 0.5]);  // This is to prevent image from becoming too dark/bright
+                    threshold = rand([-0.5, 0.5]);  // Range is to prevent image from becoming too dark/bright
 
                 It's similar to what we did for Bayer dithering, but random instead of precalculated thresholds
 
@@ -251,12 +251,7 @@ fn random_dither(
                 &palette,
             );
 
-            // Update new pixel
-            // *Note: Only update RGB values, alpha channel is preserved as-is
-            // May change in the future so that any alpha > 0 is changed  to 255 to prevent colors outside target palette
-            curr_pixel[0] = new_color.r;
-            curr_pixel[1] = new_color.g;
-            curr_pixel[2] = new_color.b;
+            update_pixel(curr_pixel, new_color);
         }
     }
 }
@@ -278,12 +273,7 @@ fn threshold(
                 &palette,
             );
 
-            // Update new pixel
-            // *Note: Only update RGB values, alpha channel is preserved as-is
-            // May change in the future so that any alpha > 0 is changed  to 255 to prevent colors outside target palette
-            curr_pixel[0] = new_color.r;
-            curr_pixel[1] = new_color.g;
-            curr_pixel[2] = new_color.b;
+            update_pixel(curr_pixel, new_color);
         }
     }
 }
