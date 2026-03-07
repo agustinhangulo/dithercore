@@ -5,6 +5,8 @@ use rand::{RngExt, rng};
 mod constants;
 use constants::*;
 
+#[derive(PartialEq, Eq, Clone)]
+
 pub enum DitherMethod {
     // Error diffusion dithering
     FloydSteinberg,

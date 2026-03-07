@@ -1,0 +1,13 @@
+[package]
+name = "cli"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "dither"
+path = "src/main.rs"
+
+[dependencies]
+cliclack = "0.4.0"
+dither = { path = "../dither" }
+image = { version = "0.25.9", features = ["avif"] }
