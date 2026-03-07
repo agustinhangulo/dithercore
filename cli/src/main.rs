@@ -1,5 +1,5 @@
 use crate::palettes::{APPLE2, BW, GRAY_8, PalettePresets};
-use cliclack::{input, intro, outro, select, spinner};
+use cliclack::{confirm, input, intro, log, outro, select, spinner};
 use dither::dither::{DitherMethod, dither};
 use image::{self, DynamicImage, GenericImageView, ImageFormat};
 use std::path::Path;
@@ -141,17 +141,33 @@ fn main() -> std::io::Result<()> {
         )
         .interact()?;
 
-    // let img = image::open(input_path).unwrap();
-    let img = image::ImageReader::open(input_path)
+    // let img = image::open(input_path).unwrap();x
+    let mut img = image::ImageReader::open(input_path)
         .unwrap()
         .decode()
         .unwrap();
 
     // Apply image adjustments before dithering (resizing, rotating, etc.)
-    // TODO: custom adjustments
+    let bright_adjust: i32 = input("Brightness: Set an amount of exposure to add/remove.")
+        .default_input("0")
+        .interact()?;
+
+    let contrast_adjust: f32 = input("Contrast: Set an amount of contrast to add/remove.")
+        .default_input("0")
+        .interact()?;
+
+    log::info(
+        "Resize: To resize your image, set a max width/height. The image is scaled based smaller of the 2 dimensions (aspect ratio is preserved).",
+    )?;
+    let (width, height) = img.dimensions();
+    let new_width: u32 = input("Set a max width to resize your image to (height will change proportionally to maintain aspect ratio)").default_input(&format!("{}", width)).interact()?;
+    let new_height: u32 = input("Set a max height to resize your image to (height will change proportionally to maintain aspect ratio)").default_input(&format!("{}", height)).interact()?;
+
     let pre_spinner = spinner();
     pre_spinner.start("Preprocessing image...");
-    let img = img.resize(1200, 1200, image::imageops::FilterType::Gaussian);
+    img = img.brighten(bright_adjust);
+    img = img.adjust_contrast(contrast_adjust);
+    img = img.resize(new_width, new_height, image::imageops::FilterType::Gaussian);
     pre_spinner.stop("Preprocessing complete.");
 
     // Dither image
