@@ -1,5 +1,5 @@
-use crate::palettes::{APPLE2, BW, GRAY_8, PalettePresets};
-use cliclack::{confirm, input, intro, log, outro, select, spinner};
+use crate::palettes::*;
+use cliclack::{input, intro, log, outro, select, spinner};
 use dither::dither::{DitherMethod, dither};
 use image::{self, DynamicImage, GenericImageView, ImageFormat};
 use std::path::Path;
@@ -56,20 +56,34 @@ fn main() -> std::io::Result<()> {
     .interact()?;
 
     // Select color palette
-    let palette_option = select("Select a color palette.")
+    let palette_option = select("Select a color palette")
         .item(PalettePresets::BW, "B & W", "Black and white")
         .item(PalettePresets::GRAY8, "Grayscale-8", "8 shades of gray")
+        .item(
+            PalettePresets::STANDARD8,
+            "Standard-8",
+            "An 8-color palette of my own creation that should work for dithering most images",
+        )
+        .item(PalettePresets::STANDARD16, "Standard-16", "A 16-color palette expansion of Standard-8 that should work even better for dithering most images")
         .item(
             PalettePresets::APPLE2,
             "Apple II",
             "Apple II (1977) inspired color palette",
+        )
+        .item(
+            PalettePresets::GAMEBOY,
+            "Gameboy",
+            "Gameboy (1989) inspired color palette",
         )
         .interact()?;
 
     let palette = match palette_option {
         PalettePresets::BW => &BW[..],
         PalettePresets::GRAY8 => &GRAY_8[..],
+        PalettePresets::STANDARD8 => &STANDARD_8[..],
+        PalettePresets::STANDARD16 => &STANDARD_16[..],
         PalettePresets::APPLE2 => &APPLE2[..],
+        PalettePresets::GAMEBOY => &GAMEBOY[..],
     };
 
     // Select dithering method
@@ -160,8 +174,8 @@ fn main() -> std::io::Result<()> {
         "Resize: To resize your image, set a max width/height. The image is scaled based smaller of the 2 dimensions (aspect ratio is preserved).",
     )?;
     let (width, height) = img.dimensions();
-    let new_width: u32 = input("Set a max width to resize your image to (height will change proportionally to maintain aspect ratio)").default_input(&format!("{}", width)).interact()?;
-    let new_height: u32 = input("Set a max height to resize your image to (height will change proportionally to maintain aspect ratio)").default_input(&format!("{}", height)).interact()?;
+    let new_width: u32 = input("Set a max width to resize your image to (height will change proportionally to maintain aspect ratio). Or just press enter to use original width.").default_input(&format!("{}", width)).interact()?;
+    let new_height: u32 = input("Set a max height to resize your image to (width will change proportionally to maintain aspect ratio). Or just press enter to use original height.").default_input(&format!("{}", height)).interact()?;
 
     let pre_spinner = spinner();
     pre_spinner.start("Preprocessing image...");

@@ -4,7 +4,10 @@ use dither::color::Color;
 pub(crate) enum PalettePresets {
     BW,
     GRAY8,
+    STANDARD8,
+    STANDARD16,
     APPLE2,
+    GAMEBOY,
 }
 
 pub(crate) const BW: [Color; 2] = [
@@ -58,15 +61,152 @@ pub(crate) const GRAY_8: [Color; 8] = [
     },
 ];
 
-// 0 - Black
-// 0.143 -
-// 0.286 -
-// 0.429 -
-// * Middle - 0.5
-// 0.571 -
-// 0.714 -
-// 0.857 -
-// 1 - White
+// Both of my "standard" palettes are very vibes based palettes I made through testing on a handful of images
+pub(crate) const STANDARD_8: [Color; 8] = [
+    // hsl(24, 4%, 8%) - Warm-leaning off-black
+    Color {
+        r: 21,
+        g: 20,
+        b: 20,
+    },
+    // hsl(24, 16%, 86%) - Warm-leaning off-white
+    Color {
+        r: 225,
+        g: 218,
+        b: 214,
+    },
+    // hsl(0, 56%, 48%) - Red
+    Color {
+        r: 191,
+        g: 54,
+        b: 54,
+    },
+    // hsl(127, 40%, 56%) - Green
+    Color {
+        r: 98,
+        g: 188,
+        b: 108,
+    },
+    // hsl(240, 40%, 56%) - Blue
+    Color {
+        r: 73,
+        g: 73,
+        b: 171,
+    },
+    // hsl(28, 32%, 16%) - Brown
+    Color {
+        r: 54,
+        g: 40,
+        b: 28,
+    },
+    // hsl(28, 51%, 70%) - Skintone
+    Color {
+        r: 218,
+        g: 176,
+        b: 140,
+    },
+    // hsl(56, 64%, 56%) - Yellow
+    Color {
+        r: 215,
+        g: 205,
+        b: 71,
+    },
+];
+
+pub(crate) const STANDARD_16: [Color; 16] = [
+    // hsl(24, 4%, 8%) - Warm-leaning off-black
+    Color {
+        r: 21,
+        g: 20,
+        b: 20,
+    },
+    // hsl(24, 16%, 24%) - Warm-leaning dark grey
+    Color {
+        r: 71,
+        g: 59,
+        b: 51,
+    },
+    // hsl(24, 16%, 56%) - Warm-leaning light grey
+    Color {
+        r: 161,
+        g: 139,
+        b: 125,
+    },
+    // hsl(24, 16%, 86%) - Warm-leaning off-white
+    Color {
+        r: 225,
+        g: 218,
+        b: 214,
+    },
+    // hsl(0, 56%, 48%) - Red
+    Color {
+        r: 191,
+        g: 54,
+        b: 54,
+    },
+    // rgb(229, 97, 185) - Pink
+    Color {
+        r: 229,
+        g: 97,
+        b: 185,
+    },
+    // hsl(127, 40%, 56%) - Green
+    Color {
+        r: 98,
+        g: 188,
+        b: 108,
+    },
+    // hsl(72, 80%, 32%) - Green/Yellow (good for plant life imagery)
+    Color {
+        r: 121,
+        g: 147,
+        b: 16,
+    },
+    // hsl(180, 80%, 48%) - Cyan
+    Color {
+        r: 24,
+        g: 220,
+        b: 220,
+    },
+    // hsl(240, 40%, 56%) - Blue
+    Color {
+        r: 73,
+        g: 73,
+        b: 171,
+    },
+    // hsl(240, 100%, 32%) - Deep Blue
+    Color { r: 0, g: 0, b: 163 },
+    // hsl(240, 40%, 80%) - Light Blue (good for skies)
+    Color {
+        r: 73,
+        g: 73,
+        b: 171,
+    },
+    // hsl(28, 32%, 16%) - Brown
+    Color {
+        r: 54,
+        g: 40,
+        b: 28,
+    },
+    // hsl(28, 51%, 70%) - Skintone
+    Color {
+        r: 218,
+        g: 176,
+        b: 140,
+    },
+    // hsl(56, 64%, 56%) - Yellow (really good in warm higlights)
+    Color {
+        r: 215,
+        g: 205,
+        b: 71,
+    },
+    // hsl(32, 64%, 48%) - Orange (surprisingly really good for skin tones)
+    Color {
+        r: 201,
+        g: 128,
+        b: 44,
+    },
+];
 
 // https://en.wikipedia.org/wiki/Apple_II_graphics#Low-Resolution_(Lo-Res)_graphics
 pub(crate) const APPLE2: [Color; 16] = [
@@ -156,41 +296,26 @@ pub(crate) const APPLE2: [Color; 16] = [
     },
 ];
 
-pub(crate) const STANDARD_8: [Color; 8] = [
-    Color { r: 255, g: 0, b: 0 },
+// https://en.wikipedia.org/wiki/List_of_video_game_console_palettes#Game_Boy
+pub(crate) const GAMEBOY: [Color; 4] = [
     Color {
-        r: 255,
-        g: 191,
-        b: 0,
+        r: 41,
+        g: 65,
+        b: 67,
     },
     Color {
-        r: 128,
-        g: 255,
-        b: 0,
+        r: 57,
+        g: 89,
+        b: 74,
     },
     Color {
-        r: 0,
-        g: 255,
-        b: 64,
+        r: 90,
+        g: 121,
+        b: 66,
     },
     Color {
-        r: 0,
-        g: 255,
-        b: 255,
-    },
-    Color {
-        r: 0,
-        g: 64,
-        b: 255,
-    },
-    Color {
-        r: 128,
-        g: 0,
-        b: 255,
-    },
-    Color {
-        r: 255,
-        g: 0,
-        b: 191,
+        r: 123,
+        g: 130,
+        b: 16,
     },
 ];
