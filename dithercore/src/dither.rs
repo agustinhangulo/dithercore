@@ -71,14 +71,14 @@ pub fn dither(
 // ## ERROR DIFFUSION DITHERING
 
 // f32 because our error diffusion calculations use floating point math.
-/// A `QuantError` instance represents the quantization error (difference) between two `Color` instances.
+/// The quantization error (difference) between two `Color` instances.
 struct QuantError {
     pub r: f32,
     pub g: f32,
     pub b: f32,
 }
 
-/// A single element in an error diffusion kernel
+/// A single element in an error diffusion kernel, specified as an offset in the image and a coefficient amount to multiply quantization error by.
 struct KernelElement {
     dx: i32,
     dy: i32,
@@ -86,23 +86,24 @@ struct KernelElement {
 }
 
 #[inline]
+/// Distributes quantization error to a single RGBA pixel.  
 fn distribute_error(pixel: &mut Rgba<u8>, err: &QuantError, coeff: f32) {
     pixel[0] = (pixel[0] as f32 + err.r * coeff).round().clamp(0.0, 255.0) as u8;
     pixel[1] = (pixel[1] as f32 + err.g * coeff).round().clamp(0.0, 255.0) as u8;
     pixel[2] = (pixel[2] as f32 + err.b * coeff).round().clamp(0.0, 255.0) as u8;
 }
 
-// Decided to make this a dedicated function should I make the decision to make alpha binary
 #[inline]
+/// Updates an RGBA pixel to the given color. If the pixel has any alpha value > 0, then it is made fully opaque (alpha channel is set to 255).
 fn update_pixel(pixel: &mut Rgba<u8>, color: &Color) {
-    // *Note: Only update RGB values, alpha channel is preserved as-is
-    // May change in the future so that any alpha > 0 is changed  to 255 to prevent colors outside target palette
     pixel[0] = color.r;
     pixel[1] = color.g;
     pixel[2] = color.b;
+    // Set the pixel to opaque to avoid having pixels with colors outside the palette when dithering
     pixel[3] = if pixel[3] > 0 { 255 } else { 0 }
 }
 
+/// Applies dithering to an RGBA image buffer if it is a valid error-diffusion algorithm. Otherwise, it leaves the buffer unmodified.
 fn error_diffusion_dither(
     img_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>,
     palette: &[Color],
@@ -159,6 +160,7 @@ fn error_diffusion_dither(
 
 // ## ORDERED DITHERING
 
+/// Applies dithering to an RGBA image buffer if it is a valid Bayer dithering algorithm. Otherwise, it leaves the buffer unmodified.
 fn bayer_dither(
     img_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>,
     palette: &[Color],
@@ -216,6 +218,7 @@ fn bayer_dither(
 
 // ## MISC DITHERING
 
+/// Applies random dithering to an RGBA image buffer.
 fn random_dither(img_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, palette: &[Color]) {
     let mut rng = rng();
 
@@ -255,6 +258,7 @@ fn random_dither(img_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, palette: &[Col
     }
 }
 
+/// Applies simple thresholding/color quantization to an RGBA image buffer.
 fn threshold(img_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, palette: &[Color]) {
     let width = img_buffer.width();
     let height = img_buffer.height();
