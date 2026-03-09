@@ -38,10 +38,9 @@ fn find_closest_palette_color(color: Color, palette: &[Color]) -> &Color {
         .unwrap()
 }
 
+/// Applies dithering to an RGBA image buffer using the specified method.
 pub fn dither(
     img_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>,
-    width: i32,
-    height: i32,
     palette: &[Color],
     dither_method: DitherMethod,
 ) {
@@ -54,19 +53,17 @@ pub fn dither(
         | DitherMethod::Burkes
         | DitherMethod::Sierra
         | DitherMethod::TwoRowSierra
-        | DitherMethod::SierraLite => {
-            error_diffusion_dither(img_buffer, width, height, palette, dither_method)
-        }
+        | DitherMethod::SierraLite => error_diffusion_dither(img_buffer, palette, dither_method),
         // Ordered dithering
         DitherMethod::Bayer2 | DitherMethod::Bayer4 | DitherMethod::Bayer8 => {
-            bayer_dither(img_buffer, width, height, palette, dither_method);
+            bayer_dither(img_buffer, palette, dither_method);
         }
         // Misc dithering
         DitherMethod::Threshold => {
-            threshold(img_buffer, width, height, palette);
+            threshold(img_buffer, palette);
         }
         DitherMethod::Random => {
-            random_dither(img_buffer, width, height, palette);
+            random_dither(img_buffer, palette);
         }
     }
 }
@@ -74,13 +71,14 @@ pub fn dither(
 // ## ERROR DIFFUSION DITHERING
 
 // f32 because our error diffusion calculations use floating point math.
+/// A `QuantError` instance represents the quantization error (difference) between two `Color` instances.
 struct QuantError {
     pub r: f32,
     pub g: f32,
     pub b: f32,
 }
 
-// A single element in an error diffusion kernel
+/// A single element in an error diffusion kernel
 struct KernelElement {
     dx: i32,
     dy: i32,
@@ -107,8 +105,6 @@ fn update_pixel(pixel: &mut Rgba<u8>, color: &Color) {
 
 fn error_diffusion_dither(
     img_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>,
-    width: i32,
-    height: i32,
     palette: &[Color],
     dither_method: DitherMethod,
 ) {
@@ -124,6 +120,9 @@ fn error_diffusion_dither(
         _ => return, // If this ever gets here just die I guess?
     };
 
+    // Not sure if casting as i32 is proper, but these values will never reach their max bounds anyway
+    let width = img_buffer.width() as i32;
+    let height = img_buffer.height() as i32;
     for cy in 0..height {
         for cx in 0..width {
             // An Rgba pixel is a tuple (r, g, b, a).
@@ -162,8 +161,6 @@ fn error_diffusion_dither(
 
 fn bayer_dither(
     img_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>,
-    width: i32,
-    height: i32,
     palette: &[Color],
     dither_method: DitherMethod,
 ) {
@@ -178,6 +175,8 @@ fn bayer_dither(
     // More explained below
     let r = 255.0 / f32::powf(palette.len() as f32, 1.0 / 3.0);
 
+    let width = img_buffer.width();
+    let height = img_buffer.height();
     for cy in 0..height {
         for cx in 0..width {
             let threshold = matrix
@@ -217,16 +216,13 @@ fn bayer_dither(
 
 // ## MISC DITHERING
 
-fn random_dither(
-    img_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>,
-    width: i32,
-    height: i32,
-    palette: &[Color],
-) {
+fn random_dither(img_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, palette: &[Color]) {
     let mut rng = rng();
 
     let noise_level = (255.0 / f32::powf(palette.len() as f32, 1.0 / 3.0)).clamp(0.0, 255.0) as i32;
 
+    let width = img_buffer.width();
+    let height = img_buffer.height();
     for cy in 0..height {
         for cx in 0..width {
             // An Rgba pixel is a tuple (r, g, b, a).
@@ -259,12 +255,9 @@ fn random_dither(
     }
 }
 
-fn threshold(
-    img_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>,
-    width: i32,
-    height: i32,
-    palette: &[Color],
-) {
+fn threshold(img_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, palette: &[Color]) {
+    let width = img_buffer.width();
+    let height = img_buffer.height();
     for cy in 0..height {
         for cx in 0..width {
             // An Rgba pixel is a tuple (r, g, b, a).

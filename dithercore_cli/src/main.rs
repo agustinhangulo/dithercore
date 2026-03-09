@@ -6,7 +6,7 @@ use std::path::Path;
 
 mod palettes;
 
-// Given a file path, check if it's a supported file type
+/// Given a file path, check if it's a supported file type
 fn is_format_supported(path: &Path) -> bool {
     ImageFormat::from_path(path)
         .map(|format| format.can_write())
@@ -188,15 +188,8 @@ fn main() -> std::io::Result<()> {
     let dither_spinner = spinner();
     dither_spinner.start("Dithering image...");
 
-    let (width, height) = img.dimensions();
     let mut img_buffer = img.into_rgba8();
-    dither(
-        &mut img_buffer,
-        width as i32,
-        height as i32,
-        palette,
-        dither_method,
-    );
+    dither(&mut img_buffer, palette, dither_method);
     dither_spinner.stop("Dithering complete.");
 
     // Save image
