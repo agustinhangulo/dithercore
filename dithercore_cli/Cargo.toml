@@ -4,10 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [[bin]]
-name = "dither"
+name = "dithercore"
 path = "src/main.rs"
 
 [dependencies]
 cliclack = "0.4.0"
-dither = { path = "../dither" }
+dithercore = { path = "../dithercore" }
 image = { version = "0.25.9", features = ["avif"] }

@@ -1,4 +1,4 @@
-use dither::color::Color;
+use dithercore::color::Color;
 
 #[derive(PartialEq, Eq, Clone)]
 pub(crate) enum PalettePresets {

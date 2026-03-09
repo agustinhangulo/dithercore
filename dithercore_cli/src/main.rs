@@ -1,6 +1,6 @@
 use crate::palettes::*;
 use cliclack::{input, intro, log, outro, select, spinner};
-use dither::dither::{DitherMethod, dither};
+use dithercore::dither::{DitherMethod, dither};
 use image::{self, DynamicImage, GenericImageView, ImageFormat};
 use std::path::Path;
 
