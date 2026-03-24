@@ -1,6 +1,6 @@
 // # DITHERING
 use crate::color::{Color, color_difference_rgb};
-use image::{ImageBuffer, Rgba};
+use image::{DynamicImage, ImageBuffer, Rgba};
 use rand::{RngExt, rng};
 mod constants;
 use constants::*;
@@ -38,12 +38,9 @@ fn find_closest_palette_color(color: Color, palette: &[Color]) -> &Color {
         .unwrap()
 }
 
-/// Applies dithering to an RGBA image buffer using the specified method.
-pub fn dither(
-    img_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>,
-    palette: &[Color],
-    dither_method: DitherMethod,
-) {
+/// Applies dithering to a DynamicImage using the specified method and returns a dithered Rgba8 DynamicImage
+pub fn dither(img: &DynamicImage, palette: &[Color], dither_method: DitherMethod) -> DynamicImage {
+    let mut img_buffer = img.to_rgba8();
     match dither_method {
         // Error diffusion dithering
         DitherMethod::FloydSteinberg
@@ -53,19 +50,25 @@ pub fn dither(
         | DitherMethod::Burkes
         | DitherMethod::Sierra
         | DitherMethod::TwoRowSierra
-        | DitherMethod::SierraLite => error_diffusion_dither(img_buffer, palette, dither_method),
+        | DitherMethod::SierraLite => {
+            error_diffusion_dither(&mut img_buffer, palette, dither_method)
+        }
         // Ordered dithering
         DitherMethod::Bayer2 | DitherMethod::Bayer4 | DitherMethod::Bayer8 => {
-            bayer_dither(img_buffer, palette, dither_method);
+            bayer_dither(&mut img_buffer, palette, dither_method);
         }
         // Misc dithering
         DitherMethod::Threshold => {
-            threshold(img_buffer, palette);
+            threshold(&mut img_buffer, palette);
         }
         DitherMethod::Random => {
-            random_dither(img_buffer, palette);
+            random_dither(&mut img_buffer, palette);
         }
     }
+
+    // In the future it may be more appropriate to process images in the proper color space
+    // and return the image in the proper color space, but it's a bit overkill for this library
+    DynamicImage::ImageRgba8(img_buffer)
 }
 
 // ## ERROR DIFFUSION DITHERING

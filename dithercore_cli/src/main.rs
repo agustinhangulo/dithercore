@@ -1,7 +1,7 @@
 use crate::palettes::*;
 use cliclack::{input, intro, log, outro, select, spinner};
 use dithercore::dither::{DitherMethod, dither};
-use image::{self, DynamicImage, GenericImageView, ImageFormat};
+use image::{self, GenericImageView, ImageFormat};
 use std::path::Path;
 
 mod palettes;
@@ -161,6 +161,8 @@ fn main() -> std::io::Result<()> {
         .decode()
         .unwrap();
 
+    dbg!("{}", img.color());
+
     // Apply image adjustments before dithering (resizing, rotating, etc.)
     let bright_adjust: i32 = input("Brightness: Set an amount of exposure to add/remove.")
         .default_input("0")
@@ -188,16 +190,13 @@ fn main() -> std::io::Result<()> {
     let dither_spinner = spinner();
     dither_spinner.start("Dithering image...");
 
-    let mut img_buffer = img.into_rgba8();
-    dither(&mut img_buffer, palette, dither_method);
+    let output_img = dither(&img, palette, dither_method);
     dither_spinner.stop("Dithering complete.");
 
     // Save image
     let save_spinner = spinner();
     save_spinner.start("Encoding and saving image...");
-    let output_image = DynamicImage::ImageRgba8(img_buffer);
-    let _save_result = output_image.save(&output_path);
-    // let _ = dbg!(_save_result);
+    let _save_result = output_img.save(&output_path);
     save_spinner.stop("Image saved.");
 
     let outro_message = format!(
